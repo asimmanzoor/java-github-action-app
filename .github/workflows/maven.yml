@@ -59,9 +59,7 @@ jobs:
         push: true
         tags: ${{ env.IMAGE_TAGS }}
         labels: ${{ steps.meta.outputs.labels }}
-        registry: ${{ env.IMAGE_REGISTRY }}
-        username: ${{ env.IMAGE_REGISTRY_USER }}
-        password: ${{ env.IMAGE_REGISTRY_PASSWORD }}
+        github-token: ${{ env.IMAGE_REGISTRY_PASSWORD }}
 
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@v1
