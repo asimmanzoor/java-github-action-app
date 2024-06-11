@@ -34,7 +34,7 @@
 		<dependency>
 			<groupId>com.demo</groupId>
 			<artifactId>demo-libs</artifactId>
-			<version>0.0.v4</version>
+			<version>0.0.v5</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.logging.log4j</groupId>
