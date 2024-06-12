@@ -49,7 +49,9 @@ jobs:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-
+    - name: Get Version
+      uses: ./
+      id: getVersion
 
     - name: Determine image tags
       if: env.IMAGE_TAGS == ''
@@ -68,7 +70,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAGS }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.getVersion.outputs.version }}-${{ env.IMAGE_TAGS }}
         labels: ${{ steps.meta.outputs.labels }}
 
     - name: Generate artifact attestation
