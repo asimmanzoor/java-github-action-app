@@ -32,9 +32,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.demo</groupId>
-			<artifactId>demo-libs</artifactId>
-			<version>0.0.v5</version>
+		  <groupId>com.demo</groupId>
+		  <artifactId>demo-libs-test</artifactId>
+		  <version>0.0.v6</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.logging.log4j</groupId>
