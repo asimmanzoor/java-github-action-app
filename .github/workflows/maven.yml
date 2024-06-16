@@ -103,7 +103,7 @@ jobs:
       - run: |
           git config --global user.email ci-bot@argocd.com && git config --global user.name ci-bot
           echo "cloning app repo"
-          git clone https://oauth2:${{ secrets.GH_PAT }}@github.com/${{ github.repository_owner }}/java-app-arogocd-deployment.git
+          git clone https://oauth2:${{ secrets.MAVEN_LIB_TOKEN }}@github.com/${{ github.repository_owner }}/java-app-arogocd-deployment.git
           cd java-app-arogocd-deployment
           echo "checkout source branch"
           ls -al
