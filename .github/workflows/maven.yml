@@ -96,11 +96,8 @@ jobs:
         head-ref: ${{ github.event.pull_request.head.sha || github.ref }}
                     
 
-  update-image-tag-in-helm:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - run: |
+    - name: Update Image Tag to Helm Repo
+      run: |
           git config --global user.email ci-bot@argocd.com && git config --global user.name ci-bot
           echo "cloning app repo"
           git clone https://oauth2:${{ secrets.MAVEN_LIB_TOKEN }}@github.com/${{ github.repository_owner }}/java-app-arogocd-deployment.git
@@ -113,15 +110,6 @@ jobs:
           sed -i "s,tag:.*,tag:\ ${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}," ./java-github-action-app/values.yaml
           git add . && git commit -m "update image tag [skip ci]"
           git push
-  add_labels:
-    runs-on: ubuntu-latest
-    needs: update-image-tag-in-helm
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-ecosystem/action-add-labels@v1
-        with:
-          labels: |
-            preview
         
 
     
