@@ -8,6 +8,7 @@
 
 name: Java CI with Maven
 env:
+  IMAGE_TAG_HASH: ""
   IMAGE_TAGS: ""
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -60,11 +61,12 @@ jobs:
         echo ${{ steps.extract.outputs.name }}
       shell: bash
 
-    - name: Determine image tags
-      if: env.IMAGE_TAGS == ''
+    - name: Determine image tags hash
+      if: env.IMAGE_TAG_HASH == ''
       run: |
-        echo "IMAGE_TAGS=${GITHUB_SHA::7}" | tee -a $GITHUB_ENV
-
+        echo "IMAGE_TAG_HASH=${GITHUB_SHA::7}" | tee -a $GITHUB_ENV
+      env:
+        IMAGE_TAGS: ${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
@@ -77,9 +79,8 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ env.IMAGE_REGISTRY }}/${{  steps.extract.outputs.artifact-id }}:${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAGS }}
+        tags: ${{ env.IMAGE_REGISTRY }}/${{  steps.extract.outputs.artifact-id }}:${{ env.IMAGE_TAGS }}
         labels: ${{ steps.meta.outputs.labels }}
-
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@v1
       with:
@@ -93,7 +94,35 @@ jobs:
         allow-licenses: MIT, Apache-2.0
         base-ref: ${{ github.event.pull_request.base.sha || 'main' }}
         head-ref: ${{ github.event.pull_request.head.sha || github.ref }}
-                
+                    
+
+  update-image-tag-in-helm:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - run: |
+          git config --global user.email ci-bot@argocd.com && git config --global user.name ci-bot
+          echo "cloning app repo"
+          git clone https://oauth2:${{ secrets.GH_PAT }}@github.com/${{ github.repository_owner }}/java-app-arogocd-deployment.git
+          cd java-github-action-app
+          echo "checkout source branch"
+          git checkout ${{ github.event.pull_request.head.ref }}
+          echo "updating image tag in values file"
+          sed -i "s,tag:.*,tag:\ ${{ env.IMAGE_TAGS }}," ./values.yaml
+          git add . && git commit -m "update image tag [skip ci]"
+          git push
+  add_labels:
+    runs-on: ubuntu-latest
+    needs: update-image-tag-in-helm
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: |
+            preview
+        
+
+    
 
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
