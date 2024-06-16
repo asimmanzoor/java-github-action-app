@@ -108,7 +108,7 @@ jobs:
           echo "updating image tag in values file"
           ls -al
           sed -i "s,tag:.*,tag:\ ${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}," ./java-github-action-app/values.yaml
-          git add . && git commit -m "update image tag [skip ci]"
+          git add . && git commit -m "update image tag"
           git push
         
 
