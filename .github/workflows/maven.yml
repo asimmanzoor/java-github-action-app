@@ -98,7 +98,7 @@ jobs:
 
     - name: Update Image Tag to Helm Repo
       run: |
-          git config --global user.email ci-bot@argocd.com && git config --global user.name ci-bot
+          git config --global user.email asimmanzoor786786@gmail.com && git config --global user.name asimmanzoor
           echo "cloning app repo"
           git clone https://oauth2:${{ secrets.MAVEN_LIB_TOKEN }}@github.com/${{ github.repository_owner }}/java-app-arogocd-deployment.git
           cd java-app-arogocd-deployment
