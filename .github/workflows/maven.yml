@@ -65,7 +65,7 @@ jobs:
       if: env.IMAGE_TAG_HASH == ''
       run: |
         echo "IMAGE_TAG_HASH=${GITHUB_SHA::7}" | tee -a $GITHUB_ENV
-        echo "IMAGE_TAGS: ${{ steps.extract.outputs.version }}-${{ IMAGE_TAG_HASH }}"
+        #echo "IMAGE_TAGS: ${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}"
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
@@ -79,7 +79,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ env.IMAGE_REGISTRY }}/${{  steps.extract.outputs.artifact-id }}:${{ env.IMAGE_TAGS }}
+        tags: ${{ env.IMAGE_REGISTRY }}/${{  steps.extract.outputs.artifact-id }}:${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}
         labels: ${{ steps.meta.outputs.labels }}
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@v1
@@ -108,7 +108,7 @@ jobs:
           echo "checkout source branch"
           git checkout ${{ github.event.pull_request.head.ref }}
           echo "updating image tag in values file"
-          sed -i "s,tag:.*,tag:\ ${{ env.IMAGE_TAGS }}," ./values.yaml
+          sed -i "s,tag:.*,tag:\ ${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}," ./values.yaml
           git add . && git commit -m "update image tag [skip ci]"
           git push
   add_labels:
