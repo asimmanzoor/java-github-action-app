@@ -65,8 +65,8 @@ jobs:
       if: env.IMAGE_TAG_HASH == ''
       run: |
         echo "IMAGE_TAG_HASH=${GITHUB_SHA::7}" | tee -a $GITHUB_ENV
-      env:
-        IMAGE_TAGS: ${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}
+        echo "IMAGE_TAGS: ${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}"
+
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
