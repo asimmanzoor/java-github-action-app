@@ -59,7 +59,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.MAVEN_LIB_TOKEN }}  
     - name: Log in to the Container registry
-      uses: docker/login-action@3.2.0
+      uses: docker/login-action@v3.2.0
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
@@ -83,13 +83,13 @@ jobs:
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
-      uses: docker/metadata-action@5.5.1
+      uses: docker/metadata-action@v5.5.1
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}     
         
     - name: Build and push Docker image
       id: push
-      uses: docker/build-push-action@6.2.0
+      uses: docker/build-push-action@v6.2.0
       with:
         context: .
         push: true
