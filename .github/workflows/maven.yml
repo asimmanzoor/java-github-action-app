@@ -127,7 +127,7 @@ jobs:
           git checkout ${{ github.event.pull_request.head.ref }}
           echo "updating image tag in values file"
           ls -al
-          sed -i "s,tag:.*,tag:\ ${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}," ./${{HELM-CHART-PATH}}/values.yaml
+          sed -i "s,tag:.*,tag:\ ${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}," ./${{env.HELM-CHART-PATH}}/values.yaml
           git add . && git commit -m "update image tag"
           git push
         
