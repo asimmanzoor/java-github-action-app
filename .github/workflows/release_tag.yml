@@ -29,6 +29,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
+      - name: create tag
+        run: |
+          git config --global user.email "$(git log -n 1 --pretty=format:%ae)" && git config --global user.name "$(git log -n 1 --pretty=format:%an)"
+          git tag v1.1.${{github.run_number}}
+          git push --tags
+          
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
