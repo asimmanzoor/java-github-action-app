@@ -118,7 +118,7 @@ jobs:
     - name: create tag
       run: |
           git config --global user.email "$(git log -n 1 --pretty=format:%ae)" && git config --global user.name "$(git log -n 1 --pretty=format:%an)"
-          git tag v1.0.{{github.run_number}}
+          git tag v1.0.${{github.run_number}}
           git push --tags
         
    
