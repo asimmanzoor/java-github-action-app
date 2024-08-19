@@ -5,7 +5,7 @@
 # They are provided by a third-party and are governed by
 # separate terms of service, privacy policy, and support
 # documentation.
-
+ 
 name: Java CI with Maven
 env:
   IMAGE_TAG_HASH: ""
@@ -15,6 +15,7 @@ env:
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
   IMAGE_REGISTRY_USER: ${{ github.actor }}
   IMAGE_REGISTRY_PASSWORD: ${{ github.token }}
+  HELM-CHART-PATH : ""
 
 on:
   push:
@@ -22,20 +23,33 @@ on:
   pull_request:
     branches: [ "main" ]
 
+  workflow_call:
+    inputs:
+      helm-chart-path:
+        required: true
+        type: string
+    secrets:
+      token:
+        required: false  
+
 jobs:
   build:
 
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      attestations: write
-      id-token: write
+    permissions:  write-all
+      #contents: read
+      #packages: write
+      #attestations: write
+      #id-token: write
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Set environment variables
+      run: |
+        echo "HELM-CHART-PATH=${{ inputs.helm-chart-path || 'java-github-action-app' }}" >> $GITHUB_ENV 
+        
+    - uses: actions/checkout@v4.1.7
     - name: Set up JDK 17
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v4.2.1
       with:
         java-version: '17'
         distribution: 'zulu'
@@ -45,14 +59,14 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.MAVEN_LIB_TOKEN }}  
     - name: Log in to the Container registry
-      uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+      uses: docker/login-action@v3.2.0
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Extract GAV
       id: extract
-      uses: andreacomo/maven-gav-extractor@v2
+      uses: andreacomo/maven-gav-extractor@v2.0.1
     - name: Log GAV
       run: |
         echo ${{ steps.extract.outputs.group-id }}
@@ -69,13 +83,13 @@ jobs:
 
     - name: Extract metadata (tags, labels) for Docker
       id: meta
-      uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+      uses: docker/metadata-action@v5.5.1
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}     
         
     - name: Build and push Docker image
       id: push
-      uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+      uses: docker/build-push-action@v6.2.0
       with:
         context: .
         push: true
@@ -84,9 +98,11 @@ jobs:
         build-args: |
             ARTIFACT_ID=${{  steps.extract.outputs.artifact-id }}
             ARTIFACT_VERSION=${{ steps.extract.outputs.version }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.MAVEN_LIB_TOKEN }}        
             
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v1
+      uses: actions/attest-build-provenance@v1.3.2
       with:
         subject-name: ${{ env.IMAGE_REGISTRY }}/${{ steps.extract.outputs.artifact-id}}
         subject-digest: ${{ steps.push.outputs.digest }}
@@ -98,11 +114,18 @@ jobs:
         allow-licenses: MIT, Apache-2.0
         base-ref: ${{ github.event.pull_request.base.sha || 'main' }}
         head-ref: ${{ github.event.pull_request.head.sha || github.ref }}
-                    
+
+    - name: create tag
+      run: |
+          git config --global user.email "$(git log -n 1 --pretty=format:%ae)" && git config --global user.name "$(git log -n 1 --pretty=format:%an)"
+          git tag v1.0.${{github.run_number}}
+          git push --tags
+        
+   
 
     - name: Update Image Tag to Helm Repo
       run: |
-          git config --global user.email asimmanzoor786786@gmail.com && git config --global user.name asimmanzoor
+          git config --global user.email "$(git log -n 1 --pretty=format:%ae)" && git config --global user.name "$(git log -n 1 --pretty=format:%an)"
           echo "cloning app repo"
           git clone https://oauth2:${{ secrets.MAVEN_LIB_TOKEN }}@github.com/${{ github.repository_owner }}/java-app-arogocd-deployment.git
           cd java-app-arogocd-deployment
@@ -111,7 +134,7 @@ jobs:
           git checkout ${{ github.event.pull_request.head.ref }}
           echo "updating image tag in values file"
           ls -al
-          sed -i "s,tag:.*,tag:\ ${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}," ./java-github-action-app/values.yaml
+          sed -i "s,tag:.*,tag:\ ${{ steps.extract.outputs.version }}-${{ env.IMAGE_TAG_HASH }}," ./${{env.HELM-CHART-PATH}}/values.yaml
           git add . && git commit -m "update image tag"
           git push
         

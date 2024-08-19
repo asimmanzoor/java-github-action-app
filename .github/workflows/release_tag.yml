@@ -1,0 +1,51 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Create Release
+#https://github.com/marketplace/actions/create-tag-release
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+#on:
+ # push:
+    # Sequence of patterns matched against refs/tags
+  #  tags:
+   #   - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+permissions: write-all
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: create tag
+        run: |
+          git config --global user.email "$(git log -n 1 --pretty=format:%ae)" && git config --global user.name "$(git log -n 1 --pretty=format:%an)"
+          git tag v1.1.${{github.run_number}}
+          git push --tags
+          
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: v1.0.${{github.run_number}}
+          release_name: Release v1.0.${{github.run_number}}
+          body: |
+            Changes in this Release
+            - test release
+            - Second release Change
+          draft: false
+          prerelease: false
